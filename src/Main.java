@@ -39,11 +39,11 @@ public class Main {
             Thread consumer = new Thread(() -> {
                 BlockingQueue<String> queue = queues.get(idx);
                 String maxString = "";
-                int maxCount = 0;
+                long maxCount = 0;
                 for (int j = 0; j < TEXT_QUANTITY; j++) {
                     try {
                         String s = queue.take();
-                        int count = countChar(s, c);
+                        long count = countChar(s, c);
                         if (count > maxCount) {
                             maxCount = count;
                             maxString = s;
@@ -75,7 +75,7 @@ public class Main {
         return text.toString();
     }
 
-    private static int countChar(String s, char c) {
-        return s.length() - s.replace(String.valueOf(c), "").length();
+    private static long countChar(String s, char target) {
+        return s.chars().filter(c -> c == target).count();
     }
 }

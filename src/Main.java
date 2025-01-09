@@ -6,22 +6,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class Main {
-    //public static final int QUEUE_SIZE = 100;
-    public static final int QUEUE_SIZE = 10; // DEBUG
+    public static final int QUEUE_SIZE = 100;
+    public static final int TEXT_QUANTITY = 10_000;
+    public static final int TEXT_SIZE = 100_000;
 
-    //public static final int TEXT_SIZE = 100_000;
-    public static final int TEXT_SIZE = 50; // DEBUG
-
-    //public static final int TEXT_QUANTITY = 10_000;
-    public static final int TEXT_QUANTITY = 20; // DEBUG
-
-    public static final BlockingQueue<String> queue1 = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    public static final BlockingQueue<String> queue2 = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    public static final BlockingQueue<String> queue3 = new ArrayBlockingQueue<>(QUEUE_SIZE);
     public static final List<BlockingQueue<String>> queues = Arrays.asList(
-            queue1,
-            queue2,
-            queue3
+            new ArrayBlockingQueue<>(QUEUE_SIZE),
+            new ArrayBlockingQueue<>(QUEUE_SIZE),
+            new ArrayBlockingQueue<>(QUEUE_SIZE)
     );
 
     public static void main(String[] args) throws InterruptedException {
@@ -32,7 +24,6 @@ public class Main {
                     for (BlockingQueue<String> queue : queues) {
                         queue.put(s);
                     }
-                    System.out.printf("=====> [%s]\n", s);
                 } catch (InterruptedException e) {
                     return;
                 }
@@ -43,24 +34,26 @@ public class Main {
         List<Thread> consumers = new ArrayList<>();
         for (int i = 0; i < queues.size(); i++) {
             int idx = i;
-            char c = (char)('a' + i);
+            char c = (char) ('a' + i);
+
             Thread consumer = new Thread(() -> {
+                BlockingQueue<String> queue = queues.get(idx);
                 String maxString = "";
                 int maxCount = 0;
                 for (int j = 0; j < TEXT_QUANTITY; j++) {
                     try {
-                        String s = queues.get(idx).take();
+                        String s = queue.take();
                         int count = countChar(s, c);
                         if (count > maxCount) {
                             maxCount = count;
                             maxString = s;
                         }
-                        System.out.printf("[%c] <= [%s] - %d\n", c, s, count);
                     } catch (InterruptedException e) {
                         return;
                     }
                 }
-                System.out.printf("REPORT: max count of letter %c - %d - found in the following string: %s\n", c, maxCount, maxString);
+                System.out.printf("Max count of letter %c - %d - found in the following string: " +
+                        "%s\n", c, maxCount, maxString.substring(0, 75) + "...");
             });
             consumer.start();
             consumers.add(consumer);
@@ -70,7 +63,7 @@ public class Main {
             consumer.join();
         }
 
-        //producer.interrupt();
+        // no need to wait for producer, it should have returned before any of the consumers
     }
 
     public static String generateText(String letters, int length) {

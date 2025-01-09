@@ -10,7 +10,7 @@ public class Main {
     public static final int QUEUE_SIZE = 10; // DEBUG
 
     //public static final int TEXT_SIZE = 100_000;
-    public static final int TEXT_SIZE = 10; // DEBUG
+    public static final int TEXT_SIZE = 50; // DEBUG
 
     //public static final int TEXT_QUANTITY = 10_000;
     public static final int TEXT_QUANTITY = 20; // DEBUG
@@ -45,14 +45,22 @@ public class Main {
             int idx = i;
             char c = (char)('a' + i);
             Thread consumer = new Thread(() -> {
+                String maxString = "";
+                int maxCount = 0;
                 for (int j = 0; j < TEXT_QUANTITY; j++) {
                     try {
                         String s = queues.get(idx).take();
-                        System.out.printf("[%c] <= [%s] - %d\n", c, s, countChar(s, c));
+                        int count = countChar(s, c);
+                        if (count > maxCount) {
+                            maxCount = count;
+                            maxString = s;
+                        }
+                        System.out.printf("[%c] <= [%s] - %d\n", c, s, count);
                     } catch (InterruptedException e) {
                         return;
                     }
                 }
+                System.out.printf("REPORT: max count of letter %c - %d - found in the following string: %s\n", c, maxCount, maxString);
             });
             consumer.start();
             consumers.add(consumer);
